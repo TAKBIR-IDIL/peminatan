@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penjurusan Peminatan Siswa Kelas XI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gemini-output {
+            white-space: pre-wrap;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            text-align: left;
+        }
+        .loader {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-6 md:p-10">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Penjurusan Peminatan Siswa</h1>
+            <p class="text-gray-500 mt-2">Kelas XI - SMAN 4 Bantaeng</p>
+        </div>
+
+        <!-- Search Input -->
+        <div class="flex flex-col sm:flex-row gap-3 mb-6">
+            <input type="text" id="nameInput" class="flex-grow w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Masukkan nama lengkap siswa...">
+            <button id="searchButton" onclick="searchStudentByName()" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300">
+                Cari
+            </button>
+        </div>
+
+        <!-- Result Display Area -->
+        <div id="result" class="mt-6">
+            <div id="initialMessage" class="text-center py-10 px-6 bg-blue-50 border-2 border-dashed border-blue-200 rounded-lg">
+                <svg class="mx-auto h-12 w-12 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <h3 class="mt-2 text-lg font-medium text-gray-900">Hasil Penjurusan Akan Tampil di Sini</h3>
+                <p class="mt-1 text-sm text-gray-500">Silakan masukkan nama siswa pada kolom di atas.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data dari file "DATA BASE PEMINATAN IX.xlsx - Sheet1.csv"
+        const csvData = `NAMA,NISN,JENIS KELAMIN,ASAL KELAS,KELAS SEKARANG,MAPEL PILIHAN 1,MAPEL PILIHAN 2,MAPEL PILIHAN 3,MAPEL PILIHAN 4
+Andi Raffael Byvikha Ikhsan,0091137253,Laki-Laki,X 1,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Jihan wulan purnama ,97181674,Perempuan,X 1,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Moh Nastainul Haq.,0095632037,Laki-Laki,X 1,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Wanda Ernita Jaya ,0095592434,Perempuan,X 1,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Anugrah Al-Qadri,0097885837,Laki-Laki,X 2,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+izzatun isnaeni,0092386777,Perempuan,X 2,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Jihan Makaila Fakhira.S,0095268309,Perempuan,X 2,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Nur Annisa,0109295096,Perempuan,X 2,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Sri ayu andira,3072255643,Perempuan,X 3,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Asy syifa khumaira s.,0099147101,Perempuan,X 4,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+LUTFIA TUL MUFIDA,0094646804,Perempuan,X 4,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Muhammad zhauqi Al Mubarak ,0093905004,Laki-Laki,X 4,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+ZULKIFLI ,424140,Laki-Laki,X 4,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+ABDULLAH PUTRA ASNUR ,424145,Laki-Laki,X 5,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Adeliazalsya ,0094768269,Perempuan,X 5,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+pika nurrahmah ,0096753819,Perempuan,X 8,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Naura sakina,301191002002,Perempuan,X 8,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Zakinah Zahra ,0091243798,Perempuan,X 5,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+AlFarizi mubaraqah,3114093276,Laki-Laki,X 6,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Hafidzah Mutahharah ,0093496186,Perempuan,X 6,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Muh.rhefan,0085773766,Laki-Laki,X 6,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Nurdiyanti,0108850279,Perempuan,X 6,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+RISAL,0089517780,Laki-Laki,X 6,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+ummu aimana,3086607755,Perempuan,X 6,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+AL FIKRATUN NAJIA,0091890800,Perempuan,X 7,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Damra Kurniawan ,009199228,Laki-Laki,X 7,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+kacawantii,0095816124,Perempuan,X 7,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+nadine al fairah ,0099952133,Laki-Laki,X 7,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Nurfadillah ,0091999202,Perempuan,X 7,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+PUTRI AMELIA ARMAN,0098737647,Perempuan,X 7,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+A. Ismi Nurul Suci,0094428026,Perempuan,X 3,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Attuffatun Nihaya ,0093516144,Perempuan,X 7,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Fauzan Wafiq,0096978209,Laki-Laki,X 4,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+nur rahma aisya,0083658636,Perempuan,X 4,XI 1,FISIKA,KIMIA,MAT TL,SOSIOLOGI
+Rifal Putra Febriansah ,0096026758,Laki-Laki,X 2,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+ZULFA LUTHFYAH ,0099665239,Perempuan,X 2,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Akma Nur Syahira,0094424569,Perempuan,X 3,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Hamzah Taa,424090,Laki-Laki,X 3,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Andi asmaul husna,0091102624,Perempuan,X 6,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+wulanda sari awal,0093323979,Perempuan,X 6,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Aqillah Thufaylah Fadtri,0091080503,Perempuan,X 6,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Farel Rafael Setiawan ,424190,Laki-Laki,X 6,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Andhika Dwi Putra,0091395013,Laki-Laki,X 6,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+A.Muh Aqram Amil,0085663648,Laki-Laki,X 6,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Nurul Azsyiffah putri as ,28,Perempuan,X 8,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Sri Suci Nurul Annisa ,0081612716,Perempuan,X 9,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Nuraynun febriani takbir,3097020263,Perempuan,X 9,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+nur andini Kadir ,0095814570,Perempuan,X 9,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Ismawati,Enterprising dan Conventional,Perempuan,X 9,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+ANDIRA FAUZIAH,0094478547,Perempuan,X 4,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+A.MEUTIA ATHAILLAH. AS,0089569537,Perempuan,X 2,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+A. EKA PUTRI,0096341104,Perempuan,X 8,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+ACHMAD LUTHFI,0099623317,,X 8,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+APRILLA AUDINA,0096380856,Perempuan,X 8,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+APRILYA DWI MAHARANI,0093243187,Perempuan,X 9,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+NAURA PUTRI MAHARANI ARRAHMAN,0097051583,Perempuan,X 9,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+ANDI RAZKAL ZHAFRAN AL TAMIS,0097482810,,X 2,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+RAISYA RIKA DEVIANA IRWAN,0093527438,Perempuan,X 2,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+NAJWA KHAERUN NISA,0093978296,Perempuan,X 2,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+ARYA RIZKY PRATAMA,0098629046,,X 4,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+NUR QOLBI RIZKI RAMADHAN T,0084073620,,X 7,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+IRFAN PANDI,0098614641,,X 9,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+M. RAFLI,0098072620,,X 8,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+NAURA ZAKINAH,0097024970,Perempuan,X 8,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+KALILA OKTAVIANA,0096892505,Perempuan,X 1,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+LAZISA TUL AYSI,0098597783,Perempuan,X 1,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+M. MUKHLIS HAAFIZH KARIM ,,,XI. 2,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+M. RATDY R. HADASING,,,XI. 2,XI 2,FISIKA,MAT TL,KIMIA,JEPANG
+Rahmat Hidayatulla ,0091569151,Laki-Laki,X 4,XI 2,FISIKA,MAT TL,KIMIA,JEPANG`;
+
+        // Parse CSV data into a usable format
+        const studentData = csvData.trim().split('\n').slice(1).map(line => {
+            const [nama, nisn, jenis_kelamin, kelas_asal, kelas_sekarang, mapel1, mapel2, mapel3, mapel4] = line.split(',');
+            return { 
+                nama: nama.trim(), 
+                nisn: nisn.trim(), 
+                jenis_kelamin: jenis_kelamin.trim(),
+                kelas_asal: kelas_asal.trim(), 
+                kelas_sekarang: kelas_sekarang.trim(),
+                mapel_pilihan: [mapel1, mapel2, mapel3, mapel4].filter(Boolean).map(m => m.trim())
+            };
+        });
+
+        let currentStudent = null;
+
+        function searchStudentByName() {
+            const nameInput = document.getElementById('nameInput').value.trim().toLowerCase();
+            const resultDiv = document.getElementById('result');
+            
+            const initialMessage = document.getElementById('initialMessage');
+            if(initialMessage) initialMessage.style.display = 'none';
+
+            if (!nameInput) {
+                resultDiv.innerHTML = createAlertMessage('Nama Kosong', 'Harap masukkan nama siswa yang ingin dicari.', 'yellow');
+                return;
+            }
+
+            currentStudent = studentData.find(student => student.nama.toLowerCase() === nameInput);
+
+            if (currentStudent) {
+                displayStudentResult(currentStudent, resultDiv);
+            } else {
+                resultDiv.innerHTML = createAlertMessage('Data Tidak Ditemukan', 'Pastikan nama yang Anda masukkan sudah benar.', 'red');
+            }
+        }
+
+        function displayStudentResult(student, container) {
+            container.innerHTML = `
+                <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="p-6">
+                        <p class="text-sm text-gray-500">Hasil Pencarian untuk Nama: ${student.nama}</p>
+                        <h2 class="text-2xl font-bold text-gray-800 mt-1">${student.nama}</h2>
+                        <p class="text-md text-gray-600">NISN: ${student.nisn || 'Tidak ada'} | Kelas Asal: ${student.kelas_asal}</p>
+                        
+                        <div class="mt-6 text-center bg-blue-50 border border-blue-200 rounded-lg p-6">
+                            <p class="text-sm font-medium text-blue-800">KELAS PEMINATAN TINGKAT XI</p>
+                            <p class="text-4xl font-bold text-blue-600 mt-2">${student.kelas_sekarang}</p>
+                        </div>
+
+                        <div class="mt-4">
+                             <p class="text-sm font-medium text-gray-700">Mata Pelajaran Pilihan:</p>
+                             <div class="flex flex-wrap gap-2 mt-2">
+                                ${student.mapel_pilihan.map(mapel => `<span class="bg-gray-200 text-gray-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">${mapel}</span>`).join('')}
+                             </div>
+                        </div>
+                    </div>
+                    <!-- Gemini AI Features -->
+                    <div class="p-6 border-t border-gray-200 bg-gray-50">
+                        <h3 class="text-center text-lg font-semibold text-gray-700 mb-4">Asisten AI untuk Masa Depanmu</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <button onclick="generateMajorAnalysis()" class="w-full bg-indigo-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-300 text-sm">✨ Analisis Kelas</button>
+                            <button onclick="generateCareerProspects()" class="w-full bg-teal-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-teal-700 transition duration-300 text-sm">✨ Prospek Karir</button>
+                            <button onclick="generateStudyTopics()" class="w-full bg-amber-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-amber-700 transition duration-300 text-sm">✨ Fokus Belajar</button>
+                        </div>
+                        <div id="geminiResult" class="mt-4"></div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function callGeminiAPI(prompt, resultContainer) {
+            resultContainer.innerHTML = '<div class="loader"></div>';
+            const apiKey = ""; // API key is handled by the environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    resultContainer.innerHTML = `<div class="gemini-output">${text}</div>`;
+                } else {
+                    throw new Error("No content received from API.");
+                }
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                resultContainer.innerHTML = createAlertMessage('Terjadi Kesalahan', 'Gagal menghubungi layanan AI. Silakan coba lagi.', 'red');
+            }
+        }
+
+        function generateMajorAnalysis() {
+            if (!currentStudent) return;
+            const geminiResultDiv = document.getElementById('geminiResult');
+            const prompt = `Sebagai seorang konselor akademik yang ramah, berikan analisis singkat mengenai penempatan siswa berikut ke kelas peminatan baru.
+            
+            Data Siswa:
+            - Nama: ${currentStudent.nama}
+            - Kelas Peminatan Baru: ${currentStudent.kelas_sekarang}
+            - Pilihan Mapel: ${currentStudent.mapel_pilihan.join(', ')}
+            
+            Tugas Anda:
+            1. Berikan ucapan selamat.
+            2. Jelaskan secara positif mengapa kelas ${currentStudent.kelas_sekarang} dengan pilihan mapel tersebut adalah langkah yang baik.
+            3. Berikan 2-3 tips praktis untuk beradaptasi.
+            4. Sampaikan dalam format poin-poin yang jelas.
+            5. Gunakan bahasa Indonesia yang memotivasi.`;
+            
+            callGeminiAPI(prompt, geminiResultDiv);
+        }
+
+        function generateCareerProspects() {
+            if (!currentStudent) return;
+            const geminiResultDiv = document.getElementById('geminiResult');
+            const prompt = `Anda adalah seorang konsultan karir. Berdasarkan penempatan siswa di kelas **${currentStudent.kelas_sekarang}** dengan pilihan mata pelajaran **${currentStudent.mapel_pilihan.join(', ')}**, berikan rekomendasi prospek masa depan.
+            
+            Tugas Anda:
+            1.  Sebutkan 3-4 jurusan kuliah yang relevan.
+            2.  Sebutkan 3-4 contoh profesi atau jalur karir yang cocok.
+            3.  Berikan satu saran singkat tentang bagaimana siswa dapat mulai mempersiapkan diri dari sekarang.
+            
+            Sajikan dalam format list yang terstruktur dan mudah dibaca (gunakan heading dan bullet points). Gunakan bahasa Indonesia.`;
+
+            callGeminiAPI(prompt, geminiResultDiv);
+        }
+
+        function generateStudyTopics() {
+            if (!currentStudent) return;
+            const geminiResultDiv = document.getElementById('geminiResult');
+            const prompt = `Sebagai seorang guru senior, berikan saran fokus belajar untuk siswa yang baru masuk ke kelas **${currentStudent.kelas_sekarang}** dengan pilihan mata pelajaran **${currentStudent.mapel_pilihan.join(', ')}**.
+
+            Tugas Anda:
+            1.  Identifikasi 2-3 mata pelajaran paling fundamental dari pilihan siswa.
+            2.  Untuk setiap mata pelajaran tersebut, sebutkan 1-2 topik kunci yang harus benar-benar dikuasai di awal.
+            3.  Berikan satu tips belajar umum untuk sukses di kelas peminatan ini.
+            
+            Gunakan format poin-poin yang rapi. Gunakan bahasa Indonesia yang jelas dan mudah dipahami.`;
+            
+            callGeminiAPI(prompt, geminiResultDiv);
+        }
+
+        function createAlertMessage(title, message, color) {
+            const colors = {
+                yellow: { bg: 'bg-yellow-50', border: 'border-yellow-200' },
+                red: { bg: 'bg-red-50', border: 'border-red-200' }
+            };
+            const selectedColor = colors[color] || colors.yellow;
+            return `<div class="text-center py-6 px-4 ${selectedColor.bg} border-2 border-dashed ${selectedColor.border} rounded-lg"><h3 class="font-semibold text-gray-800">${title}</h3><p class="text-sm text-gray-600">${message}</p></div>`;
+        }
+
+        document.getElementById('nameInput').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('searchButton').click();
+            }
+        });
+    </script>
+
+</body>
+</html>
